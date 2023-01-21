@@ -1,5 +1,9 @@
 from flickrapi import FlickrAPI
 import requests
+from PIL import Image
+import tensorflow as tf
+import tensorflow_datasets as tfds
+from pathlib import Path
 # key = "b65896c797abd5c49080ba666165e762"
 # secret = "860f6f7ba08fce00"
 
@@ -7,7 +11,7 @@ import requests
 
 
 # flickr = FlickrAPI(key, secret, format='etree')
-# keyword = "cat"
+# keyword = "alligator"
 # photos = flickr.walk(text=keyword,
                      # tag_mode='all',
                      # tags=keyword,
@@ -31,14 +35,11 @@ import requests
 
 # for i in range(1000):
 
-    # urllib.request.urlretrieve(urls[i], f'cats/{keyword}_{i}.jpg')
-    # image = Image.open(f'cats/{keyword}_{i}.jpg') 
-    # image = image.resize((256, 256))
-    # image.save(f'cats/{keyword}_{i}.jpg')
-from PIL import Image
-import tensorflow as tf
-import tensorflow_datasets as tfds
-from pathlib import Path
+    # urllib.request.urlretrieve(urls[i], f'alligators/{keyword}_{i}.jpg')
+    # image = Image.open(f'alligators/{keyword}_{i}.jpg') 
+    # image = image.resize((224, 224))
+    # image.save(f'alligators/{keyword}_{i}.jpg')
+
 
 data_dir = "./"
 image_count = len(list(Path(data_dir).glob('*/*.jpg')))
@@ -49,8 +50,8 @@ import matplotlib.pyplot as plt
 
 print(image_count)
 batch_size = 32
-img_height = 256
-img_width = 256
+img_height = 224
+img_width = 224
 train_ds = tf.keras.utils.image_dataset_from_directory(
   data_dir,
   seed=123,
@@ -59,7 +60,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
   batch_size=batch_size,
   validation_split = 0.2,
   subset = 'training')
-  
+
 validation_ds = tf.keras.utils.image_dataset_from_directory(
   data_dir,
   seed=123,
@@ -86,29 +87,53 @@ print('Number of training batches: %d' % tf.data.experimental.cardinality(train_
 print('Number of validation batches: %d' % tf.data.experimental.cardinality(validation_ds))
 print('Number of test batches: %d' % tf.data.experimental.cardinality(test_ds))
 
-# test_ds = tf.keras.utils.image_dataset_from_directory(
-  # data_dir,
-  # validation_split=0.1,
-  # subset="validation",
-  # seed=123,
-  # image_size=(img_height, img_width),
-  # batch_size=batch_size)
-# def get_photos(flickr, num=1000):
-    # result  = flickr.photos.search(
-        # text = 'dog',
-        # per_page = num, # Default 100, maximum allowed: 500.
-        # media = 'photos', # all (default), photos or videos
-        # content_type = 1, #just photos (no screenshots nor 'other')
-        # sort = 'relevance',
-        # privacy_filter = 1, #public photos
-        # safe_search = 1
-    # )
-    # return result
+IMG_SIZE = (img_height, img_width)
+preprocess_input = tf.keras.applications.mobilenet_v2.preprocess_input
+rescale = tf.keras.layers.Rescaling(1./127.5, offset=-1)
+# Create the base model from the pre-trained model MobileNet V2
+IMG_SHAPE = IMG_SIZE + (3,)
+base_model = tf.keras.applications.MobileNetV2(input_shape=IMG_SHAPE,
+                                               include_top=False,
+                                               weights='imagenet')
+                                               
+image_batch, label_batch = next(iter(train_ds))
+feature_batch = base_model(image_batch)
+print(feature_batch.shape)
 
-# result = get_photos(flickr, num = 10)
-# #print(result['photos']['photo'][0]
-# #print(result)
+base_model.trainable = False
 
-# photo = result['photos']['photo'][0]
-# url = f"https://live.staticflickr.com/{photo['server']}/{photo['id']}_{photo['secret']}.jpg"
-# print(url)
+base_model.summary()
+
+global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+feature_batch_average = global_average_layer(feature_batch)
+print(feature_batch_average.shape)
+
+prediction_layer = tf.keras.layers.Dense(1)
+prediction_batch = prediction_layer(feature_batch_average)
+print(prediction_batch.shape)
+
+
+
+inputs = tf.keras.Input(shape=(224, 224, 3))
+x = preprocess_input(inputs)
+x = base_model(x, training=False)
+x = global_average_layer(x)
+x = tf.keras.layers.Dropout(0.2)(x)
+outputs = prediction_layer(x)
+model = tf.keras.Model(inputs, outputs)
+
+base_learning_rate = 0.0001
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
+              loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+initial_epochs = 30
+
+loss0, accuracy0 = model.evaluate(validation_ds)
+
+print("initial loss: {:.2f}".format(loss0))
+print("initial accuracy: {:.2f}".format(accuracy0))
+
+
+history = model.fit(train_ds,
+                    epochs=initial_epochs,
+                    validation_data=validation_ds)
