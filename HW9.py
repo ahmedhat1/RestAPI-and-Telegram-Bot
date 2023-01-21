@@ -45,6 +45,8 @@ image_count = len(list(Path(data_dir).glob('*/*.jpg')))
 # dogs = list(Path(data_dir).glob('*/*.jpg'))
 # # im = Image.open(str(dogs[0]))
 # im.show()
+import matplotlib.pyplot as plt
+
 print(image_count)
 batch_size = 32
 img_height = 256
@@ -55,16 +57,32 @@ ds = tf.keras.utils.image_dataset_from_directory(
   shuffle=True,
   image_size=(img_height, img_width),
   batch_size=batch_size)
-# ds = ds.shuffle(100, seed=12)
+plt.figure(figsize=(10, 10))
+class_names = ds.class_names
+
+for images, labels in ds.take(1):
+  for i in range(9):
+    ax = plt.subplot(3, 3, i + 1)
+    plt.imshow(images[i].numpy().astype("uint8"))
+    plt.title(class_names[labels[i]])
+    plt.axis("off")
+plt.show()
+
+ds = ds.shuffle(100, seed=12)
 ds_size = image_count
 train_split=0.8
 val_split = 0.1
 train_size = int(train_split * ds_size)
 val_size = int(val_split * ds_size)
-
+print("train_size", train_size)
+print("val_size", val_size)
 train_ds = ds.take(train_size)    
 val_ds = ds.skip(train_size).take(val_size)
 test_ds = ds.skip(train_size).skip(val_size)
+
+print('Number of validation batches: %d' % tf.data.experimental.cardinality(val_ds))
+print('Number of test batches: %d' % tf.data.experimental.cardinality(test_ds))
+
 # test_ds = tf.keras.utils.image_dataset_from_directory(
   # data_dir,
   # validation_split=0.1,
