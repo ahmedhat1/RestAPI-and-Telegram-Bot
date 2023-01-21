@@ -28,7 +28,6 @@ import requests
       
 # import urllib.request
 # import matplotlib.pyplot as plt
-from PIL import Image
 
 # for i in range(1000):
 
@@ -36,6 +35,7 @@ from PIL import Image
     # image = Image.open(f'cats/{keyword}_{i}.jpg') 
     # image = image.resize((256, 256))
     # image.save(f'cats/{keyword}_{i}.jpg')
+from PIL import Image
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from pathlib import Path
@@ -51,36 +51,39 @@ print(image_count)
 batch_size = 32
 img_height = 256
 img_width = 256
-ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = tf.keras.utils.image_dataset_from_directory(
   data_dir,
   seed=123,
   shuffle=True,
   image_size=(img_height, img_width),
-  batch_size=batch_size)
+  batch_size=batch_size,
+  validation_split = 0.2,
+  subset = 'training')
+  
+validation_ds = tf.keras.utils.image_dataset_from_directory(
+  data_dir,
+  seed=123,
+  shuffle=True,
+  image_size=(img_height, img_width),
+  batch_size=batch_size,
+  validation_split = 0.2,
+  subset = 'validation')
+  
 plt.figure(figsize=(10, 10))
-class_names = ds.class_names
+class_names = train_ds.class_names
 
-for images, labels in ds.take(1):
+for images, labels in train_ds.take(1):
   for i in range(9):
     ax = plt.subplot(3, 3, i + 1)
     plt.imshow(images[i].numpy().astype("uint8"))
     plt.title(class_names[labels[i]])
     plt.axis("off")
 plt.show()
-
-ds = ds.shuffle(100, seed=12)
-ds_size = image_count
-train_split=0.8
-val_split = 0.1
-train_size = int(train_split * ds_size)
-val_size = int(val_split * ds_size)
-print("train_size", train_size)
-print("val_size", val_size)
-train_ds = ds.take(train_size)    
-val_ds = ds.skip(train_size).take(val_size)
-test_ds = ds.skip(train_size).skip(val_size)
-
-print('Number of validation batches: %d' % tf.data.experimental.cardinality(val_ds))
+val_batches = tf.data.experimental.cardinality(validation_ds)
+test_ds = validation_ds.take(val_batches // 2)
+validation_ds = validation_ds.skip(val_batches // 2)
+print('Number of training batches: %d' % tf.data.experimental.cardinality(train_ds))
+print('Number of validation batches: %d' % tf.data.experimental.cardinality(validation_ds))
 print('Number of test batches: %d' % tf.data.experimental.cardinality(test_ds))
 
 # test_ds = tf.keras.utils.image_dataset_from_directory(
