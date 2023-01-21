@@ -49,27 +49,29 @@ print(image_count)
 batch_size = 32
 img_height = 256
 img_width = 256
-testing_ds = tf.keras.utils.image_dataset_from_directory(
+ds = tf.keras.utils.image_dataset_from_directory(
   data_dir,
-  validation_split=0.1,
-  subset="training",
   seed=123,
+  shuffle=True,
   image_size=(img_height, img_width),
   batch_size=batch_size)
-val_ds = tf.keras.utils.image_dataset_from_directory(
-  data_dir,
-  validation_split=0.1,
-  subset="validation",
-  seed=123,
-  image_size=(img_height, img_width),
-  batch_size=batch_size)
-test_ds = tf.keras.utils.image_dataset_from_directory(
-  data_dir,
-  validation_split=0.1,
-  subset="validation",
-  seed=123,
-  image_size=(img_height, img_width),
-  batch_size=batch_size)
+# ds = ds.shuffle(100, seed=12)
+ds_size = image_count
+train_split=0.8
+val_split = 0.1
+train_size = int(train_split * ds_size)
+val_size = int(val_split * ds_size)
+
+train_ds = ds.take(train_size)    
+val_ds = ds.skip(train_size).take(val_size)
+test_ds = ds.skip(train_size).skip(val_size)
+# test_ds = tf.keras.utils.image_dataset_from_directory(
+  # data_dir,
+  # validation_split=0.1,
+  # subset="validation",
+  # seed=123,
+  # image_size=(img_height, img_width),
+  # batch_size=batch_size)
 # def get_photos(flickr, num=1000):
     # result  = flickr.photos.search(
         # text = 'dog',
