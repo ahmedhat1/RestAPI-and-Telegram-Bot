@@ -1,5 +1,6 @@
 import tensorflow as tf
 from pathlib import Path
+import telegramBot as tb
 
 data_dir = "./"
 image_count = len(list(Path(data_dir).glob('*/*.jpg')))
@@ -70,13 +71,15 @@ base_learning_rate = 0.0001
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
               loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
               metrics=['accuracy'])
-initial_epochs = 30
+initial_epochs = 12
 
 loss0, accuracy0 = model.evaluate(validation_ds)
 
 print("initial loss: {:.2f}".format(loss0))
 print("initial accuracy: {:.2f}".format(accuracy0))
 
+personal_token = '5743195238:AAGTLvjXZ0rvZVXOU89Gaa2rVUW4CN64MWA'
+bot_callback = tb.BotCallback(personal_token)
 history = model.fit(train_ds,
                     epochs=initial_epochs,
-                    validation_data=validation_ds)
+                    validation_data=validation_ds,callbacks=[bot_callback])
