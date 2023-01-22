@@ -2,7 +2,7 @@ import tensorflow as tf
 from pathlib import Path
 import telegramBot as tb
 
-data_dir = "./"
+data_dir = "./images"
 image_count = len(list(Path(data_dir).glob('*/*.jpg')))
 
 print(image_count)  # output should be 3000
@@ -59,14 +59,14 @@ prediction_layer = tf.keras.layers.Dense(1)
 prediction_batch = prediction_layer(feature_batch_average)
 print(prediction_batch.shape)
 
-<<<<<<< HEAD:HW9.py
+#<<<<<<< HEAD:
 data_augmentation = tf.keras.Sequential([
   tf.keras.layers.RandomFlip('horizontal'),
   tf.keras.layers.RandomRotation(0.2),
 ])
 
-=======
->>>>>>> cb6d9752b41e6081d80314d36f85b345a133469f:training.py
+#=======
+#>>>>>>> cb6d9752b41e6081d80314d36f85b345a133469f:training.py
 inputs = tf.keras.Input(shape=(224, 224, 3))
 x = data_augmentation(inputs)
 x = preprocess_input(x)
@@ -81,7 +81,7 @@ model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rat
               loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
               metrics=['accuracy'])
 initial_epochs = 12
-
+tb.total_epochs=initial_epochs
 loss0, accuracy0 = model.evaluate(validation_ds)
 
 print("initial loss: {:.2f}".format(loss0))
