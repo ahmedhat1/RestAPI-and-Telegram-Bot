@@ -42,14 +42,14 @@ for i in range(3):
             print(e)
 
 
-fig, ax = plt.subplots(3, 3, figsize=(10, 10))
-classes = ['dog', 'cat', 'alligator']
-for i, label in enumerate(classes):
-    for j in range(3):
-        image = Image.open(f'{label}s/{label}_{j}.jpg')
-        ax[i, j].imshow(image)
-        ax[i, j].set_xticks([])
-        ax[i, j].set_yticks([])
-        ax[i, j].set_title(f'{label}_{j}')
-
-plt.show()
+# fig, ax = plt.subplots(3, 3, figsize=(10, 10))
+# classes = ['dog', 'cat', 'alligator']
+# for i, label in enumerate(classes):
+#     for j in range(3):
+#         image = Image.open(f'{label}s/{label}_{j}.jpg')
+#         ax[i, j].imshow(image)
+#         ax[i, j].set_xticks([])
+#         ax[i, j].set_yticks([])
+#         ax[i, j].set_title(f'{label}_{j}')
+#
+# plt.show()
