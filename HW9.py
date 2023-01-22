@@ -112,10 +112,14 @@ prediction_layer = tf.keras.layers.Dense(1)
 prediction_batch = prediction_layer(feature_batch_average)
 print(prediction_batch.shape)
 
-
+data_augmentation = tf.keras.Sequential([
+  tf.keras.layers.RandomFlip('horizontal'),
+  tf.keras.layers.RandomRotation(0.2),
+])
 
 inputs = tf.keras.Input(shape=(224, 224, 3))
-x = preprocess_input(inputs)
+x = data_augmentation(inputs)
+x = preprocess_input(x)
 x = base_model(x, training=False)
 x = global_average_layer(x)
 x = tf.keras.layers.Dropout(0.2)(x)
