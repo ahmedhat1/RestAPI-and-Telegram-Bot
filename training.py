@@ -88,7 +88,8 @@ print("initial loss: {:.2f}".format(loss0))
 print("initial accuracy: {:.2f}".format(accuracy0))
 
 personal_token = '5743195238:AAGTLvjXZ0rvZVXOU89Gaa2rVUW4CN64MWA'
-bot_callback = tb.BotCallback(personal_token)
+bot_callback = tb.BotCallback(personal_token,test_ds)
 history = model.fit(train_ds,
                     epochs=initial_epochs,
-                    validation_data=validation_ds,callbacks=[bot_callback])
+                    validation_data=validation_ds,
+                    callbacks=[bot_callback])

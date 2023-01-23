@@ -32,10 +32,10 @@ for i in range(3):
 
     for k in range(1000):
         try:
-            urllib.request.urlretrieve(urls[k], f'{keyword[i]}s/{keyword[i]}_{k}.jpg')
-            image = Image.open(f'{keyword[i]}s/{keyword[i]}_{k}.jpg')
+            urllib.request.urlretrieve(urls[k], f'images/{keyword[i]}s/{keyword[i]}_{k}.jpg')
+            image = Image.open(f'images/{keyword[i]}s/{keyword[i]}_{k}.jpg')
             image = image.resize((256, 256))
-            image.save(f'{keyword[i]}s/{keyword[i]}_{k}.jpg')
+            image.save(f'images/{keyword[i]}s/{keyword[i]}_{k}.jpg')
         except urllib.error.HTTPError as e:
             print(e)
         except urllib.error.URLError as e:
